@@ -64,8 +64,23 @@ const SavedLocations = () => {
     } catch {}
   }
 
-  function handleClick(value: string) {
-    router.push("/landing");
+  function handleClick(value: Location) {
+    try {
+      const temp = process.env.NEXT_PUBLIC_SECRET_KEY as string;
+
+      const token = jwt.sign(
+        {
+          address: value.address,
+        },
+        temp,
+        {}
+      );
+
+      Cookies.set("savedlocation", token);
+      router.push("/landing");
+    } catch (error) {
+      console.error("JWT signing error:", error);
+    }
   }
 
   const Location = () => {
@@ -88,7 +103,7 @@ const SavedLocations = () => {
               </button>
               <button
                 className="flex items-center text-white p-3 rounded-lg ml-4 bg-sky-500 hover:bg-sky-700"
-                onClick={() => handleClick(location.address)}
+                onClick={() => handleClick(location)}
               >
                 <div className="mr-2">Display Destination</div>
                 <div>

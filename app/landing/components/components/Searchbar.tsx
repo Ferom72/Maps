@@ -1,10 +1,19 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { FaDirections, FaSistrix } from "react-icons/fa";
-import Head from "next/head";
 import DisplayPlace from "./components/Displayplace";
+import Cookies from "js-cookie";
+import axios from "axios";
 
 interface SearchbarProps {
   setlocation: (value: { lat: number; lng: number } | undefined) => void;
+}
+
+interface SavedLocation {
+  address: string;
+  id: string;
+  lat: number;
+  lng: number;
+  name: string;
 }
 
 const Searchbar: React.FC<SearchbarProps> = ({ setlocation }) => {
@@ -19,8 +28,9 @@ const Searchbar: React.FC<SearchbarProps> = ({ setlocation }) => {
     google.maps.places.AutocompletePrediction[]
   >([]);
 
-  const [selectedPlace, setSelectedPlace] =
-    useState<google.maps.places.PlaceResult | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<
+    google.maps.places.PlaceResult | null | SavedLocation
+  >(null);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -30,6 +40,25 @@ const Searchbar: React.FC<SearchbarProps> = ({ setlocation }) => {
       setGoogleLoaded(true);
     };
     document.head.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    async function GetLocation() {
+      const token = Cookies.get("token") as string;
+      if (Cookies.get("savedlocation")) {
+        const locationtoken = Cookies.get("savedlocation") as string;
+
+        const data = {
+          token,
+          locationtoken,
+        };
+
+        await axios.post("/api/getSavedLocation", { data }).then((res) => {
+          setSelectedPlace(res.data);
+        });
+      }
+    }
+    GetLocation();
   }, []);
 
   useEffect(() => {
@@ -55,17 +84,8 @@ const Searchbar: React.FC<SearchbarProps> = ({ setlocation }) => {
     return str?.length > n ? str.substring(0, n - 1) + "..." : str;
   }
 
-  const googleMapsApiScriptUrl = useMemo(
-    () =>
-      `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_API}&libraries=places&callback=initMap`,
-    []
-  );
-
   return (
     <div>
-      <Head>
-        <script async src={googleMapsApiScriptUrl}></script>
-      </Head>
       <div className="flex justify-center">
         <div
           className="flex 
@@ -114,7 +134,10 @@ const Searchbar: React.FC<SearchbarProps> = ({ setlocation }) => {
 
       {selectedPlace !== null ? (
         <div>
-          <DisplayPlace selected={selectedPlace} />
+          <DisplayPlace
+            selected={selectedPlace}
+            info={selectedPlace as SavedLocation}
+          />
         </div>
       ) : (
         <div className="text-center my-80">

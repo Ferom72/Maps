@@ -7,6 +7,15 @@ import Cookies from "js-cookie";
 
 interface DisplayPlaceProps {
   selected: google.maps.places.PlaceResult | null;
+  info: SavedLocation;
+}
+
+interface SavedLocation {
+  address: string;
+  id: string;
+  lat: number;
+  lng: number;
+  name: string;
 }
 
 interface LocationData {
@@ -22,7 +31,7 @@ interface location {
   token: string;
 }
 
-const DisplayPlace: React.FC<DisplayPlaceProps> = ({ selected }) => {
+const DisplayPlace: React.FC<DisplayPlaceProps> = ({ selected, info }) => {
   const [saveLocation, setSaveLocation] = useState(true);
 
   useEffect(() => {
@@ -130,7 +139,9 @@ const DisplayPlace: React.FC<DisplayPlaceProps> = ({ selected }) => {
         )}
         <div>
           <h5 className="underline underline-offset-2">Address</h5>
-          <p className="text-gray-600 mb-2">{selected.formatted_address}</p>
+          <p className="text-gray-600 mb-2">
+            {selected.formatted_address || info.address}
+          </p>
         </div>
 
         {selected.opening_hours !== undefined ? (

@@ -8,18 +8,16 @@ export async function POST(request: Request) {
     const { token } = body;
     const decoded = jwt.decode(token) as JwtPayload;
 
-    console.log(decoded)
-
     if (decoded) {
       const userId = decoded.id as string;
-      const email = decoded.emial as string;
+      const email = decoded.email as string;
 
       const userLocations = await prisma.user
         .findUnique({
-          where: { 
-            id:userId,
-            email
-        },
+          where: {
+            id: userId,
+            email,
+          },
         })
         .savedLocations();
 
